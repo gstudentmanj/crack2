@@ -14,24 +14,41 @@ const int HASH_LEN = 33;        // Length of MD5 hash strings
 char * tryWord(char * plaintext, char * hashFilename)
 {
     // Hash the plaintext
-
+    char *plain_hash_str = md5(plaintext, strlen(plaintext));
     // Open the hash file
+    FILE *hash_file = fopen(hashFilename, "r");
 
+    char line_buffer[HASH_LEN + 2];
+    char *match_hash = NULL;
+
+    if (hash_file == NULL)
+    {
+
+        perror("Error opening hash file");
+        exit(1);   
+    }
     // Loop through the hash file, one line at a time.
+    while (fgets(line_buffer, sizeof(line_buffer), hash_file))
+    {
+        line_buffer[strcspn(line_buffer, "\n")] = '\0';
+        // Attempt to match the hash from the file to the
+        // hash of the plaintext.
+        if (strcmp(plain_hash_str, line_buffer) == 0 )
+        {
+            match_hash = (char *)malloc(HASH_LEN);
+            if (match_hash)
+            {
+                strcpy(match_hash, line_buffer);
+            }
+            break;
+        }
+    }
 
-    // Attempt to match the hash from the file to the
-    // hash of the plaintext.
+    fclose(hash_file);
 
-    // If there is a match, you'll return the hash.
-    // If not, return NULL.
+    free(plain_hash_str);
 
-    // Before returning, do any needed cleanup:
-    //   Close files?
-    //   Free memory?
-
-    // Modify this line so it returns the hash
-    // that was found, or NULL if not found.
-    return "0123456789abcdef0123456789abcdef";
+    return match_hash;
 }
 
 
@@ -42,18 +59,9 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Usage: %s hash_file dict_file\n", argv[0]);
         exit(1);
     }
-
-    // These two lines exist for testing. When you have
-    // tryWord working, it should display the hash for "hello",
-    // which is 5d41402abc4b2a76b9719d911017c592.
-    // Then you can remove these two lines and complete the rest
-    // of the main function below.
-    char *found = tryWord("hello", "hashes00.txt");
-    printf("%s %s\n", found, "hello");
-
-
     // Open the dictionary file for reading.
-    
+    char *hash_filename = argv[1];
+    char *dict_filename = argv[2];
 
     // For each dictionary word, pass it to tryWord, which
     // will attempt to match it against the hashes in the hash_file.
